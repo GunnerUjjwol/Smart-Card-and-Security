@@ -28,12 +28,12 @@
         "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\drawable-xxhdpi\\ic_key.png"
     },
     {
-        "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-xxhdpi_ic_is_selected.png.flat",
-        "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\drawable-xxhdpi\\ic_is_selected.png"
-    },
-    {
         "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_ic_action_delete.png.flat",
         "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\drawable-hdpi\\ic_action_delete.png"
+    },
+    {
+        "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-xxhdpi_ic_is_selected.png.flat",
+        "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\drawable-xxhdpi\\ic_is_selected.png"
     },
     {
         "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_ic_log_file.png.flat",
@@ -44,12 +44,12 @@
         "source": "C:\\Users\\ujjwol\\.gradle\\caches\\transforms-2\\files-2.1\\5971f3a89ffb6bfcd466bd26a390798b\\support-compat-26.1.0\\res\\drawable-xhdpi-v4\\notification_bg_normal.9.png"
     },
     {
-        "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi_ic_info_popup.png.flat",
-        "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\drawable-xhdpi\\ic_info_popup.png"
-    },
-    {
         "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\layout_console_popup.xml.flat",
         "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\layout\\console_popup.xml"
+    },
+    {
+        "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi_ic_info_popup.png.flat",
+        "source": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\src\\main\\res\\drawable-xhdpi\\ic_info_popup.png"
     },
     {
         "merged": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi_ic_launcher.png.flat",

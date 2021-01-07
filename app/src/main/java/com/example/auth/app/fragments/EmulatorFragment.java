@@ -30,8 +30,10 @@ public class EmulatorFragment extends Fragment {
 
     private Button btn_issue;
     private Button btn_validate;
+    private Button btn_reset;
 
     public boolean issue_mode = false;
+    public boolean reset_mode = false;
     public boolean active = false;
 
     public EmulatorFragment() {
@@ -47,7 +49,9 @@ public class EmulatorFragment extends Fragment {
         public void onClick(View v) {
             btn_validate.setSelected(true);
             btn_issue.setSelected(false);
+            btn_reset.setSelected(false);
             issue_mode = false;
+            reset_mode = false;
         }
     };
 
@@ -55,7 +59,19 @@ public class EmulatorFragment extends Fragment {
         public void onClick(View v) {
             btn_issue.setSelected(true);
             btn_validate.setSelected(false);
+            btn_reset.setSelected(false);
             issue_mode = true;
+            reset_mode = false;
+        }
+    };
+
+    private View.OnClickListener reset_listener = new View.OnClickListener() {
+        public void onClick(View v) {
+            btn_reset.setSelected(true);
+            btn_validate.setSelected(false);
+            btn_issue.setSelected(false);
+            issue_mode = false;
+            reset_mode = true;
         }
     };
 
@@ -65,6 +81,8 @@ public class EmulatorFragment extends Fragment {
         active = b;
         if (issue_mode) {
             issue();
+        }else if(reset_mode) {
+            reset();
         } else {
             use();
         }
@@ -74,6 +92,18 @@ public class EmulatorFragment extends Fragment {
         if (active && Reader.connect()) {
             try {
                 ticket.issue(30, 10);
+                ticket_info.setText(Ticket.getInfoToShow());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Reader.disconnect();
+        }
+    }
+
+    public void reset() {
+        if (active && Reader.connect()) {
+            try {
+                ticket.resetCard();
                 ticket_info.setText(Ticket.getInfoToShow());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -142,6 +172,7 @@ public class EmulatorFragment extends Fragment {
 
         btn_issue = v.findViewById(R.id.issue_mode);
         btn_validate = v.findViewById(R.id.validate_mode);
+        btn_reset = v.findViewById(R.id.reset_mode);
 
         issue_mode = false;
         btn_issue.setSelected(false);
@@ -149,6 +180,7 @@ public class EmulatorFragment extends Fragment {
 
         btn_issue.setOnClickListener(issue_listener);
         btn_validate.setOnClickListener(validate_listener);
+        btn_reset.setOnClickListener(reset_listener);
 
         return v;
     }

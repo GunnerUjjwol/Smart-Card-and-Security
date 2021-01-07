@@ -46,7 +46,7 @@
         <item name="d4">"thursday"</item>
         <item name="d5">"friday"</item>
         <item name="d6">"saturday"</item>
-    </array><string name="default_key">"default key"</string><string name="nfc_disabled_msg">"NFC is disabled on your device."</string><string name="action_nfc_settings">"NFC settings"</string><string name="placeholder_text">Placeholder text</string></file><file path="D:\Masters\Network Security\Project 1 materials (NFC ticket)-20201112\nfc_ticket_code\app\src\main\res\values\styles.xml" qualifiers=""><style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+    </array><string name="default_key">"default key"</string><string name="nfc_disabled_msg">"NFC is disabled on your device."</string><string name="action_nfc_settings">"NFC settings"</string><string name="placeholder_text">Placeholder text</string><string name="reset_mode">Reset</string></file><file path="D:\Masters\Network Security\Project 1 materials (NFC ticket)-20201112\nfc_ticket_code\app\src\main\res\values\styles.xml" qualifiers=""><style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
         
         <item name="android:actionBarStyle">@style/MyActionBar</item>
         <item name="android:actionOverflowButtonStyle">@style/MyOverFlow</item>

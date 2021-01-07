@@ -30,6 +30,7 @@
     <!--TICKET SECTION BUTTON TITLES-->
     <string name="issue_mode">Issue</string>
     <string name="validate_mode">Validate</string>
+    <string name="reset_mode">Reset</string>
 
     <!--UNSORTED-->
     <string name="console_btn_archive">Archive</string>

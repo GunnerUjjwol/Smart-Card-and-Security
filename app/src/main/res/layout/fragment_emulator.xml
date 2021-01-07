@@ -58,6 +58,16 @@
             android:layout_weight="1"
             android:background="@drawable/button_inv"
             android:textColor="@drawable/button_inv_text" />
+
+        <Button
+            android:id="@+id/reset_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reset_mode"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_inv"
+            android:textColor="@drawable/button_inv_text"/>
     </LinearLayout>
 
 </RelativeLayout>
