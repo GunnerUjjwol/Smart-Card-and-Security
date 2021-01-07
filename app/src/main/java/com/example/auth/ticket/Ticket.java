@@ -214,6 +214,9 @@ public class Ticket {
             expiryTime = readExpirationTime();
             if (expiryTime == 0) {
                 cardNotActivated = true;
+            } else if (expiryTime == -1) {
+                Utilities.log("Could not read expiration time", true);
+                return false;
             }
         }
 
@@ -226,6 +229,10 @@ public class Ticket {
 
 
         expiryTime = readExpirationTime();
+        if(expiryTime == -1){
+            Utilities.log("Could not read the expiration time", true);
+            return false;
+        }
         int currentTime = (int) ((new Date()).getTime() / 1000);
         if (expiryTime != 0) {
             if (expiryTime < currentTime) {
@@ -282,10 +289,10 @@ public class Ticket {
         }
         Utilities.log("New Rides Total subject to counter decrement: " + newRideLimitsAfterIssue, false);
         //calculate HMAC using UID, appTagAndVersion, maxAllowedRideForCard and authenticationKey
-        byte[] mac = calculateMAC(authenticationKey);
+        byte[] mac = calculateMAC(authenticationKey, convertIntToByteArray(expiryTime));
 
         Utilities.log("MAC Calculated ", false);
-        res = writeMAC(mac);
+        res = writeMAC(mac, counterIntValue);
         if (res) {
             Utilities.log("MAC written", false);
         } else {
@@ -300,7 +307,7 @@ public class Ticket {
         if (firstIssue) {
             additionalInfo = "\nThe card will be activated when used for the first time";
         } else {
-            expiryTime = readExpirationTime();
+            //expiryTime = readExpirationTime();
             additionalInfo = "\nExpiring At: " + new Date((long) expiryTime * 1000);
         }
         if (expiredCard) {
@@ -321,6 +328,7 @@ public class Ticket {
      */
     public boolean use() throws GeneralSecurityException {
         boolean res;
+        boolean firstUse = false;
 
         //Check if the card is default and has not been issued
         res = utils.authenticate(defaultAuthenticationKey);
@@ -356,7 +364,39 @@ public class Ticket {
         if (expiryTime == 0) {
             Utilities.log("First use of the card detected", false);
             expiryTime = currentTime + (expiryValidityInMins * 60);
+            firstUse = true;
+        } else if (expiryTime == -1){
+            Utilities.log("Could not read the expiration Time", true);
+            return false;
+        }
+
+        if (expiryTime < currentTime) {
+            infoToShow = "The card has been expired.\nExpired at: " + new Date((long) expiryTime * 1000);
+            isValid = false;
+            Utilities.log(infoToShow, true);
+            return false;
+        }
+        //read counter from card
+        int counterIntValue = readCounterValue();
+        if(firstUse){
+
             byte[] expirationTimeInBytes = convertIntToByteArray(expiryTime);
+            byte[] mac = calculateMAC(authenticationKey, expirationTimeInBytes);
+            res = writeMAC(mac, counterIntValue + 1);
+            if (res) {
+                infoToShow = "First time card use configuration ongoing.\nHold the Card for longer.";
+                Utilities.log("MAC written", false);
+            } else {
+                infoToShow = "Error encountered while trying to write the MAC";
+                isValid = false;
+                Utilities.log(infoToShow, false);
+                return false;
+            }
+            //TODO: remove, check for tearing protection
+//            if(true){
+//                return true;
+//            }
+
             res = utils.writePages(expirationTimeInBytes, 0, pageForExpirationTime, 1);
             if (!res) {
                 infoToShow = "Could not set the expiration Time";
@@ -367,35 +407,11 @@ public class Ticket {
                 infoToShow = "The card is now activated. The expiration time is set at " + new Date((long) expiryTime * 1000) + "\nHold the card till it is used successfully.";
                 Utilities.log(infoToShow, false);
             }
-            //TODO: remove, check for tearing protection
-            if(true){
-                return true;
-            }
-//            byte[] mac = calculateMAC(authenticationKey);
-//            res = writeMAC(mac);
-//            if (res) {
-//                Utilities.log("MAC written", false);
-//            } else {
-//                infoToShow = "Error encountered while trying to write the MAC";
-//                isValid= false;
-//                Utilities.log(infoToShow, false);
-//                return false;
-//            }
-
-
-        }
-
-        if (expiryTime < currentTime) {
-            infoToShow = "The card has been expired.\nExpired at: " + new Date((long) expiryTime * 1000);
-            isValid = false;
-            Utilities.log(infoToShow, true);
-            return false;
         }
         //read max rides allowed for the card with respect to the counter value
         int maxRideAllowedForTheCard = readMaxRideForTheCard();
 
-        //read counter from card
-        int counterIntValue = readCounterValue();
+
 
         if (counterIntValue >= maxRideAllowedForTheCard) {
             infoToShow = "All rides have been used up.";
@@ -411,12 +427,14 @@ public class Ticket {
             Utilities.log(infoToShow, false);
         }
 
+
+
         return true;
     }
 
-    public boolean writeMAC(byte[] mac) {
+    public boolean writeMAC(byte[] mac, int counterValue) {
         boolean res = false;
-        int counterValue = readCounterValue();
+        //int counterValue = readCounterValue();
         if(counterValue == -1){
             Utilities.log("Could not read the counter value", true);
             return false;
@@ -431,7 +449,7 @@ public class Ticket {
 
     public byte[]  readMAC(int counterValue) {
         byte[] readMac = new byte[5*4];
-        boolean res = false;
+        boolean res;
         if(counterValue == -1){
             Utilities.log("Could not read the counter value", true);
             return null;
@@ -447,12 +465,12 @@ public class Ticket {
         return readMac;
     }
 
-    public byte[] calculateMAC(byte[] authenticationKey) throws GeneralSecurityException {
+    public byte[] calculateMAC(byte[] authenticationKey, byte[] readExpirationTime) throws GeneralSecurityException {
         //calculate HMAC using UID, appTagAndVersion, authenticationKey
         byte[] readUid = getUIDInBytes();
         byte[] readTagnVersion = new byte[2 * 4];
         byte[] readMaximumAllowedRides = new byte[4];
-        byte[] readExpirationTime = new byte[4];
+        //byte[] readExpirationTime = new byte[4];
         boolean res = utils.readPages(pageForTagAndVersionStart, 2, readTagnVersion, 0);
         if (!res) {
             infoToShow = "Could not Read the tag and version";
@@ -465,19 +483,19 @@ public class Ticket {
             Utilities.log(infoToShow, false);
             return null;
         }
-        res = utils.readPages(pageForExpirationTime, 1, readExpirationTime, 0);
-        if (!res) {
-            infoToShow = "Could not Read the expiration Time";
-            Utilities.log(infoToShow, false);
-            return null;
-        }
+//        res = utils.readPages(pageForExpirationTime, 1, readExpirationTime, 0);
+//        if (!res) {
+//            infoToShow = "Could not Read the expiration Time";
+//            Utilities.log(infoToShow, false);
+//            return null;
+//        }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             outputStream.write(readUid);
             outputStream.write(readTagnVersion);
             outputStream.write(readMaximumAllowedRides);
-            //outputStream.write(readExpirationTime);
+            outputStream.write(readExpirationTime);
             outputStream.write(authenticationKey);
         } catch (IOException e) {
             e.printStackTrace();
@@ -500,7 +518,12 @@ public class Ticket {
         }
         //Calculate MAC
         authenticationKey = calculateDiversifiedAuthKey();
-        byte[] mac = calculateMAC(authenticationKey);
+        int expirationTime = readExpirationTime();
+        if(expirationTime == -1){
+            Utilities.log("Could not read expiration time", true);
+            return false;
+        }
+        byte[] mac = calculateMAC(authenticationKey, convertIntToByteArray(expirationTime));
         String macString = convertByteArrayToString(mac);
         String readMacString = convertByteArrayToString(readMac);
         //TODO: remove
@@ -553,7 +576,11 @@ public class Ticket {
 
     public int readExpirationTime() {
         byte[] expirationTimeBytes = new byte[4];
-        utils.readPages(pageForExpirationTime, 1, expirationTimeBytes, 0);
+        boolean res;
+        res = utils.readPages(pageForExpirationTime, 1, expirationTimeBytes, 0);
+        if(!res){
+            return -1;
+        }
         int expirationTime = convertByteArrayToInt(expirationTimeBytes);
         return expirationTime;
     }
