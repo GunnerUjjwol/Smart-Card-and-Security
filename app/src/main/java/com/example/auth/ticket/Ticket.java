@@ -22,9 +22,6 @@ public class Ticket {
 
     private static byte[] defaultAuthenticationKey = "BREAKMEIFYOUCAN!".getBytes();// 16-byte key
 
-    /**
-     * TODO: Change these according to your design. Diversify the keys.
-     */
     private static byte[] authenticationKey = defaultAuthenticationKey;// 16-byte key21
 
     private static TicketMac macAlgorithm; // For computing HMAC over ticket data, as needed
@@ -146,10 +143,6 @@ public class Ticket {
         boolean cardNotActivated = false;
         boolean expiredCard = false;
 
-        //TODO: remove, can be uncommented for the purpose of resetting the card to default key
-//        if(resetCard()){
-//            return true;
-//        }
 
         // Authenticate
         res = utils.authenticate(defaultAuthenticationKey);
@@ -220,8 +213,8 @@ public class Ticket {
             }
         }
 
-        //enable Memory Protection
-        if (!enableAuth0() || !enableReadWriteRestriction()) {
+        //enable Read Protection
+        if (!enableAuth0() || !enableReadRestriction()) {
             infoToShow = "Error encountered during memory protection.";
             Utilities.log(infoToShow, true);
             return false;
@@ -229,7 +222,7 @@ public class Ticket {
 
 
         expiryTime = readExpirationTime();
-        if(expiryTime == -1){
+        if (expiryTime == -1) {
             Utilities.log("Could not read the expiration time", true);
             return false;
         }
@@ -288,8 +281,8 @@ public class Ticket {
             return false;
         }
         Utilities.log("New Rides Total subject to counter decrement: " + newRideLimitsAfterIssue, false);
-        //calculate HMAC using UID, appTagAndVersion, maxAllowedRideForCard and authenticationKey
-        byte[] mac = calculateMAC(authenticationKey, convertIntToByteArray(expiryTime));
+        //calculate HMAC using UID, appTagAndVersion, maxAllowedRideForCard, expiryTime
+        byte[] mac = calculateMAC(convertIntToByteArray(expiryTime));
 
         Utilities.log("MAC Calculated ", false);
         res = writeMAC(mac, counterIntValue);
@@ -365,7 +358,7 @@ public class Ticket {
             Utilities.log("First use of the card detected", false);
             expiryTime = currentTime + (expiryValidityInMins * 60);
             firstUse = true;
-        } else if (expiryTime == -1){
+        } else if (expiryTime == -1) {
             Utilities.log("Could not read the expiration Time", true);
             return false;
         }
@@ -378,10 +371,10 @@ public class Ticket {
         }
         //read counter from card
         int counterIntValue = readCounterValue();
-        if(firstUse){
+        if (firstUse) {
 
             byte[] expirationTimeInBytes = convertIntToByteArray(expiryTime);
-            byte[] mac = calculateMAC(authenticationKey, expirationTimeInBytes);
+            byte[] mac = calculateMAC(expirationTimeInBytes);
             res = writeMAC(mac, counterIntValue + 1);
             if (res) {
                 infoToShow = "First time card use configuration ongoing.\nHold the Card for longer.";
@@ -412,7 +405,6 @@ public class Ticket {
         int maxRideAllowedForTheCard = readMaxRideForTheCard();
 
 
-
         if (counterIntValue >= maxRideAllowedForTheCard) {
             infoToShow = "All rides have been used up.";
             isValid = false;
@@ -428,49 +420,47 @@ public class Ticket {
         }
 
 
-
         return true;
     }
 
     public boolean writeMAC(byte[] mac, int counterValue) {
         boolean res = false;
         //int counterValue = readCounterValue();
-        if(counterValue == -1){
+        if (counterValue == -1) {
             Utilities.log("Could not read the counter value", true);
             return false;
         }
-        if(counterValue%2 == 0){
-            res = utils.writePages(mac, 0, pageForMACStartEven, 5);
-        }else {
-            res = utils.writePages(mac, 0, pageForMACStartOdd, 5);
+        if (counterValue % 2 == 0) {
+            res = utils.writePages(mac, 0, pageForMACStartEven, 1);
+        } else {
+            res = utils.writePages(mac, 0, pageForMACStartOdd, 1);
         }
         return res;
     }
 
-    public byte[]  readMAC(int counterValue) {
-        byte[] readMac = new byte[5*4];
+    public byte[] readMAC(int counterValue) {
+        byte[] readMac = new byte[4];
         boolean res;
-        if(counterValue == -1){
+        if (counterValue == -1) {
             Utilities.log("Could not read the counter value", true);
             return null;
         }
-        if(counterValue%2 == 0){
-            res = utils.readPages(pageForMACStartEven,5,readMac, 0);
-        }else {
-            res = utils.readPages(pageForMACStartOdd,5,readMac, 0);
+        if (counterValue % 2 == 0) {
+            res = utils.readPages(pageForMACStartEven, 1, readMac, 0);
+        } else {
+            res = utils.readPages(pageForMACStartOdd, 1, readMac, 0);
         }
-        if(!res){
+        if (!res) {
             return null;
         }
         return readMac;
     }
 
-    public byte[] calculateMAC(byte[] authenticationKey, byte[] readExpirationTime) throws GeneralSecurityException {
-        //calculate HMAC using UID, appTagAndVersion, authenticationKey
+    public byte[] calculateMAC(byte[] readExpirationTime) throws GeneralSecurityException {
+        //calculate HMAC using UID, appTagAndVersion, max allowed uses, expiry time
         byte[] readUid = getUIDInBytes();
         byte[] readTagnVersion = new byte[2 * 4];
         byte[] readMaximumAllowedRides = new byte[4];
-        //byte[] readExpirationTime = new byte[4];
         boolean res = utils.readPages(pageForTagAndVersionStart, 2, readTagnVersion, 0);
         if (!res) {
             infoToShow = "Could not Read the tag and version";
@@ -483,12 +473,6 @@ public class Ticket {
             Utilities.log(infoToShow, false);
             return null;
         }
-//        res = utils.readPages(pageForExpirationTime, 1, readExpirationTime, 0);
-//        if (!res) {
-//            infoToShow = "Could not Read the expiration Time";
-//            Utilities.log(infoToShow, false);
-//            return null;
-//        }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
@@ -496,14 +480,16 @@ public class Ticket {
             outputStream.write(readTagnVersion);
             outputStream.write(readMaximumAllowedRides);
             outputStream.write(readExpirationTime);
-            outputStream.write(authenticationKey);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         byte[] inputForMac = outputStream.toByteArray();
         macAlgorithm.setKey(authenticationKey);
-        return macAlgorithm.generateMac(inputForMac);
+        byte[] macBytes= macAlgorithm.generateMac(inputForMac);
+        System.out.println("Byte Length:" + macBytes.length);
+        byte[] truncatedMACTo4Bytes = truncate(macBytes, 4);
+        return truncatedMACTo4Bytes;
     }
 
     public boolean checkMac() throws GeneralSecurityException {
@@ -517,29 +503,28 @@ public class Ticket {
             return false;
         }
         //Calculate MAC
-        authenticationKey = calculateDiversifiedAuthKey();
         int expirationTime = readExpirationTime();
-        if(expirationTime == -1){
+        if (expirationTime == -1) {
             Utilities.log("Could not read expiration time", true);
             return false;
         }
-        byte[] mac = calculateMAC(authenticationKey, convertIntToByteArray(expirationTime));
+        byte[] mac = calculateMAC(convertIntToByteArray(expirationTime));
         String macString = convertByteArrayToString(mac);
         String readMacString = convertByteArrayToString(readMac);
         //TODO: remove
-        Utilities.log("Checking mac: " + macString + " : " + readMacString, true);
+        //Utilities.log("Checking mac: " + macString + " : " + readMacString, true);
         if (macString != null && readMacString != null && macString.equals(readMacString)) {
             Utilities.log("MAC matches", false);
             return true;
         } else {
-            readMac = readMAC(counterValue +1);
+            readMac = readMAC(counterValue + 1);
             readMacString = convertByteArrayToString(readMac);
-            if(readMacString!= null && macString.equals(readMacString)){
+            if (readMacString != null && macString.equals(readMacString)) {
                 //TODO: remove
-                Utilities.log("Tearing occurred in previous transaction. Checking with earlier MAC", true);
+                Utilities.log("Tearing seemed to have occurred in previous transaction. Checking with previous state of card", true);
                 Utilities.log("MAC matches", false);
                 return true;
-            }else {
+            } else {
                 infoToShow = "Failed to validate the card.\nMAC does not match";
                 isValid = false;
                 Utilities.log(infoToShow, true);
@@ -552,9 +537,10 @@ public class Ticket {
     public int readCounterValue() {
         byte[] counterBytes = new byte[4];
         boolean res = utils.readPages(pageForCounter, 1, counterBytes, 0);
-        if(!res){
+        if (!res) {
             return -1;
-        };
+        }
+        ;
         //reversing counterBytes
         for (int i = 0; i < counterBytes.length / 2; i++) {
             byte temp = counterBytes[i];
@@ -578,7 +564,7 @@ public class Ticket {
         byte[] expirationTimeBytes = new byte[4];
         boolean res;
         res = utils.readPages(pageForExpirationTime, 1, expirationTimeBytes, 0);
-        if(!res){
+        if (!res) {
             return -1;
         }
         int expirationTime = convertByteArrayToInt(expirationTimeBytes);
@@ -609,9 +595,9 @@ public class Ticket {
         return success;
     }
 
-    public boolean enableReadWriteRestriction() {
-        //enables read/write restriction without authentication
-        byte[] authBytes = new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
+    public boolean enableReadRestriction() {
+        //enables read restriction without authentication
+        byte[] authBytes = new byte[]{(byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00};
         boolean success = utils.writePages(authBytes, 0, 0x2B, 1);
         return success;
     }
@@ -632,6 +618,23 @@ public class Ticket {
         infoToShow = "The card has been reset to the default";
         return true;
     }
+     /** * Truncates the given array to the request length.
+            *
+            * @param array
+     *            the array to be truncated.
+     * @param newLength
+     *            the new length in bytes.
+     * @return the truncated array.
+     */
+    public static byte[] truncate(byte[] array, int newLength) {
+        if (array.length < newLength) {
+            return array;
+        } else {
+            byte[] truncated = new byte[newLength];
+            System.arraycopy(array, 0, truncated, 0, newLength);
 
+            return truncated;
+        }
+    }
 
 }

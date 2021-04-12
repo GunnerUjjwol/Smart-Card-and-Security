@@ -120,7 +120,7 @@
     <string name="validate_mode">Validate</string>
     <string name="write_key_info">"This function lets you change the authentication key on an Ultralight C tag. The authentication key is stored on pages 44–47, and if the pages are protected by the AUTH settings, then you must set authentication enabled before attempting to write the key.\n\nChoose the new key from the spinner list."</string>
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        
+        <!-- Customize your theme here. -->
         <item name="android:actionBarStyle">@style/MyActionBar</item>
         <item name="android:actionOverflowButtonStyle">@style/MyOverFlow</item>
         <item name="android:buttonStyle">@style/MyButtonTheme</item>

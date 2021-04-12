@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "D:\\Masters\\Network Security\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-th\\values-th.xml",
+            "outputFile": "D:\\Masters\\1st Sem\\Network Security( CS-E4300)\\Project 1 materials (NFC ticket)-20201112\\nfc_ticket_code\\app\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-th\\values-th.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ujjwol\\.gradle\\caches\\transforms-2\\files-2.1\\5971f3a89ffb6bfcd466bd26a390798b\\support-compat-26.1.0\\res\\values-th\\values-th.xml",
